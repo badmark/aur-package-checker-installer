@@ -8,7 +8,7 @@ I then thought that I wanted to do this everytime I installed a new AUR packe, b
 
 If enough people use this and are interested, I will add the ability to upload possible compromissed pacakges through the interface and run more stringent and through testing of all of the code attached to each package, while maintaining and update the list of compromised package, including a way for packages that have been patrches/update/replaced to be removed from this living list.
 
-Disclaimer: Local Ollama instace with qwen2.5 and the Cline VSCode extension was used for syntax , formatting, and pattern matching
+<span style="font-size: 1px; font-style: italic"><small>Disclaimer: Local Ollama instance with the qwen2.5 model and the Cline VSCode extension was used for syntax, formatting, and pattern matching assistance</small></span>
 
 ### Install:
 
