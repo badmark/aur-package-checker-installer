@@ -59,6 +59,7 @@ show_help() {
     echo "  -c, --check-all                  Download and run deep heuristic checks on packages being installed and their AUR dependencies."
     echo "  -l, --check-local                Scan your currently installed system packages against the malware list without installing anything."
     echo "  -v, --view-logs                  View the color-coded history log of script activities."
+    echo "  -d, --deep                       Deep scan of all locally installed packages' PKGBUILD files in search of malicious payloads"
     echo "  -h, --help                       Show this complete help and usage message."
     echo ""
     echo "Environment Variables:"
@@ -70,6 +71,37 @@ show_help() {
         echo -e "                                   Status: ${YELLOW}Using custom environment override.${NC}"
     fi
 }
+
+deep_scan() {
+    echo "Performing deep scan of currently installed AUR packages in search of malicious payloads"
+for pkg in $(pacman -Qq); do
+  # Extract package name and directory
+  pkg_name=$(basename "$pkg")
+  pkg_dir=$(dirname "$pkg")
+
+  # Check PKGBUILD and install files
+  for file in "$pkg_dir"/*.install; do
+    if grep -iE -n "curl.*\|.*bash|wget.*\|.*bash|base64\s*-d|rm\s*-rf\s*/|mkfs|dd\s+if=" "$file" 2>/dev/null; then
+      echo -e "${RED}CRITICAL WARNING: Malicious payload detected in package '$pkg_name'!${NC}"
+      echo -e "${RED}Affected file: $file${NC}"
+      # Log the incident and mark the package as compromised
+      log_message "CRITICAL" "Malicious payload detected in package '$pkg_name'."
+      record_discovery "$pkg_name" "" "Malicious payload in installation file '$file'."
+      COMPROMISED_PACKAGE=true
+    fi
+  done
+done
+} # Check for malicious payloads in installation files
+
+
+# Check if any compromised packages were found
+if [ "$COMPROMISED_PACKAGE" = true ]; then
+  echo -e "${RED}Installation aborted due to malicious payload detected.${NC}"
+  exit 1
+else
+  echo -e "${GREEN}No malicious payloads detected in any installed packages.${NC}"
+fi
+
 
 # Helper function to write to log file with timestamps
 log_message() {
@@ -200,6 +232,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --help|-h)
             show_help
+            exit 0
+            ;;
+        --deep|-d)
+            deep_scan
             exit 0
             ;;
         --check-all|-c)
